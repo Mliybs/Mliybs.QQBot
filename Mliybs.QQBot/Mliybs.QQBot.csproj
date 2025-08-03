@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Validate\" />
+    <Folder Include="Data\Events\" />
   </ItemGroup>
 
 </Project>

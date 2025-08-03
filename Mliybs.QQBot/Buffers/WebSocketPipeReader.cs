@@ -39,8 +39,11 @@ public class WebSocketPipeReader : IDisposable
 
             var bytesRead = result.Count;
 
-            if (result.EndOfMessage || bytesRead == 0)
+            if (result.MessageType == WebSocketMessageType.Close) throw new InvalidDataException();
+
+            if (result.EndOfMessage)
             {
+                writer.Advance(bytesRead);
                 await writer.FlushAsync().ConfigureAwait(false);
                 break;
             }

@@ -1,11 +1,14 @@
 ﻿using Mliybs.QQBot.Buffers;
 using Mliybs.QQBot.Data;
+using Mliybs.QQBot.Data.Http;
 using Mliybs.QQBot.Utils;
+using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -13,36 +16,30 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace Mliybs.QQBot.Network.Http
+namespace Mliybs.QQBot.Bots.Http
 {
-    public partial class HttpHandler : IQQBotHandler
+    public class HttpBot : QQBot, IDisposable
     {
-        private readonly string id;
-        private readonly string secret;
-
         private string accessToken = default!;
-
-        private readonly HttpClient client = new();
 
         private readonly HttpListener listener = new();
 
         private readonly Ed25519PublicKeyParameters publicKey;
         private readonly Ed25519PrivateKeyParameters privateKey;
 
-        public HttpHandler(string id, string secret, int listenPort)
+        public HttpBot(string id, string secret, int listenPort) : base(id, secret)
         {
-            this.id = id;
-            this.secret = secret;
-
             (publicKey, privateKey) = SignHelpers.GenerateKey(secret);
 
             listener.Prefixes.Add($"http://+:{listenPort}/");
             listener.Start();
+
+            _ = ReceiveLoop();
         }
 
         public async Task<ReplyResult> SendAsync(HttpContent content)
         {
-            var json = await JsonDocument.ParseAsync(await (await client.SendAsync(new(HttpMethod.Post, ApiUrl)
+            var json = await JsonDocument.ParseAsync(await (await OpenApiHelpers.Client.SendAsync(new(HttpMethod.Post, OpenApiHelpers.ApiUrl)
             {
                 Headers = { { "Authorization", "QQBot " + accessToken } },
                 Content = content
@@ -55,57 +52,62 @@ namespace Mliybs.QQBot.Network.Http
             return result;
         }
 
-        public async Task<ReplyResult> ReceiveAsync()
+        public async Task<(ReplyResult, HttpListenerContext)> ReceiveAsync()
         {
             var context = await listener.GetContextAsync();
 
-            var signature = Convert.FromHexString(context.Request.Headers["X-Signature-Ed25519"]!);
-            var timestamp = Encoding.UTF8.GetBytes(context.Request.Headers["X-Signature-Timestamp"]!);
-
             using var stream = context.Request.InputStream;
-            using var reader = new StreamPipeReader();
+            using var reader = new StreamReader(stream);
 
-            var signer = SignHelpers.NewSigner(publicKey, timestamp);
+            var raw = await reader.ReadToEndAsync();
 
-            var json = JsonDocument.Parse(await reader.ReadToEndAsync(stream, signer.BlockUpdate));
+            var json = JsonDocument.Parse(raw);
 
             var result = json.Deserialize<ReplyResult>(UtilHelpers.Options)!;
 
             json.RootElement.TryGetProperty("d", out result.Data);
 
-            return result;
+            result.Raw = raw;
+
+            return (result, context);
         }
 
-        public record AccessTokenInfo(string AccessToken, int ExpiresIn);
-
-        public async Task<AccessTokenInfo> GetAccessToken()
+        private async Task ReceiveLoop()
         {
-            var result = await client.PostAsJsonAsync(AccessTokenUrl, new { appId = id, clientSecret = secret }, UtilHelpers.Options);
-            return (await result.EnsureSuccessStatusCode()
-                .Content.ReadFromJsonAsync<AccessTokenInfo>(UtilHelpers.Options))!;
+            while (true)
+            {
+                var (result, context) = await ReceiveAsync();
+
+                if (result.Opcode == Opcode.CallbackUrlValidate)
+                {
+                    var payload = result.Data.Deserialize<CallbackValidateInfo>(UtilHelpers.Options)!;
+
+                    var signer = SignHelpers.NewSigner(privateKey, Encoding.UTF8.GetBytes(payload.EventTimestamp));
+                    signer.BlockUpdate(Encoding.UTF8.GetBytes(payload.PlainToken));
+                    var sig = Convert.ToHexString(signer.GenerateSignature()).ToLower();
+
+                    using var stream = context.Response.OutputStream;
+                    await stream.WriteAsync(Encoding.UTF8.GetBytes(
+                        JsonSerializer.Serialize(new { plain_token = payload.PlainToken, signature = sig }, UtilHelpers.Options)));
+                }
+
+                context.Response.Close();
+            }
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             GC.SuppressFinalize(this);
             listener.Stop();
             listener.Close();
             ((IDisposable)listener).Dispose();
-            client?.Dispose();
         }
 
-        ~HttpHandler()
+        ~HttpBot()
         {
             listener.Stop();
             listener.Close();
             ((IDisposable)listener).Dispose();
-            client?.Dispose();
         }
-    }
-
-    partial class HttpHandler
-    {
-        public const string AccessTokenUrl = "https://bots.qq.com/app/getAppAccessToken";
-        public const string ApiUrl = "https://api.sgroup.qq.com";
     }
 }

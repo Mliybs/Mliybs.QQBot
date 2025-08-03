@@ -12,7 +12,7 @@ namespace Mliybs.QQBot.Data
         private JsonElement data;
 
         [JsonPropertyName("id")]
-        public int Id { get; set; }
+        public string Id { get; set; }
 
         [JsonPropertyName("op")]
         public Opcode Opcode { get; set; }
@@ -21,9 +21,12 @@ namespace Mliybs.QQBot.Data
         public int SerialNumber { get; set; }
 
         [JsonPropertyName("t")]
-        public string Type { get; set; } // 暂未实现枚举
+        public EventType Type { get; set; }
 
         [JsonPropertyName("d"), JsonIgnore]
         public ref JsonElement Data => ref data;
+
+        [JsonIgnore]
+        public string Raw {  get; set; }
     }
 }

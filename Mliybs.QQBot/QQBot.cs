@@ -1,21 +1,20 @@
-﻿using Mliybs.QQBot.Network;
-using Mliybs.QQBot.Network.Http;
+﻿using Mliybs.QQBot.Bots.Http;
 using System;
+using System.Threading.Tasks;
 
 namespace Mliybs.QQBot
 {
-    partial class QQBot
+    public abstract partial class QQBot(string id, string secret) : IDisposable
     {
-        public static QQBot Http(string id, string secret, int listenPort) => new(new HttpHandler(id, secret, listenPort));
-    }
+        internal string _id = id;
+        internal string _secret = secret;
 
-    public partial class QQBot
-    {
-        private readonly IQQBotHandler handler;
-
-        public QQBot(IQQBotHandler handler)
+        public virtual void Dispose()
         {
-            this.handler = handler;
+            GC.SuppressFinalize(this);
+            AccessTokenManager.Dispose();
         }
+
+        public AccessTokenManager AccessTokenManager { get; set; } = AccessTokenManager.GetBeforeExpire(id, secret);
     }
 }
