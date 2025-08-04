@@ -18,7 +18,7 @@ namespace Mliybs.QQBot.Data
         public Opcode Opcode { get; set; }
 
         [JsonPropertyName("s")]
-        public int SerialNumber { get; set; }
+        public int? SerialNumber { get; set; }
 
         [JsonPropertyName("t")]
         public EventType Type { get; set; }

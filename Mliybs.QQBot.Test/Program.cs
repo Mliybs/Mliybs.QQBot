@@ -10,4 +10,9 @@ using var bot = new WebSocketBot(id, secret);
 
 await bot.ConnectAsync(WebSocketIntent.GroupAndC2cEvent);
 
-Console.ReadLine();
+bot.MessageReceived.Subscribe(x =>
+{
+    Console.WriteLine(x.Content);
+});
+
+bot.KeepRunning();

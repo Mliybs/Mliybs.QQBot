@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Text.Json.Serialization;
 using Mliybs.QQBot.Data;
+using Mliybs.QQBot.Data.Attributes;
 
 namespace Mliybs.QQBot.Utils
 {
@@ -20,8 +21,19 @@ namespace Mliybs.QQBot.Utils
             NumberHandling = JsonNumberHandling.AllowReadingFromString,
             Converters =
             {
-                new JsonStringEnumConverter<EventType>(JsonNamingPolicy.SnakeCaseUpper)
+                new JsonStringEnumConverter<EventType>(JsonNamingPolicy.SnakeCaseUpper),
+                new AttachmentConverter()
             }
         };
+
+        public static readonly ConcurrentDictionary<EventType, Type> EventTypes;
+
+        static UtilHelpers()
+        {
+            EventTypes = new(Assembly.GetAssembly(typeof(UtilHelpers))!.GetTypes()
+                .Select(x => (Event: x, Attribute: x.GetCustomAttribute<EventAttribute>()))
+                .Where(x => x.Attribute != null)
+                .Select(x => new KeyValuePair<EventType, Type>(x.Attribute!.Type, x.Event)));
+        }
     }
 }

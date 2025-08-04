@@ -12,8 +12,4 @@
     <PackageReference Include="System.Reactive" Version="6.0.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Data\Events\" />
-  </ItemGroup>
-
 </Project>

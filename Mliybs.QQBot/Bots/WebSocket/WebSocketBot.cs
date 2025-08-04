@@ -1,5 +1,6 @@
 ﻿using Mliybs.QQBot.Buffers;
 using Mliybs.QQBot.Data;
+using Mliybs.QQBot.Data.Events;
 using Mliybs.QQBot.Data.Http;
 using Mliybs.QQBot.Data.WebSocket;
 using Mliybs.QQBot.Utils;
@@ -29,7 +30,7 @@ namespace Mliybs.QQBot.Bots.WebSocket
             heartbeatTimer = new(SendHeartbeat);
         }
 
-        public async Task<ReadyEvent> ConnectAsync(WebSocketIntent subscribeIntents)
+        public async Task<ReadyEvent> ConnectAsync(WebSocketIntent subscribeIntents = WebSocketIntent.GroupAndC2cEvent)
         {
             await AccessTokenManager.StartAsync(); // 刷新AccessToken
 
@@ -76,6 +77,8 @@ namespace Mliybs.QQBot.Bots.WebSocket
 
             result.Raw = raw;
 
+            if (result.SerialNumber.HasValue) currentSerialNumber = result.SerialNumber.Value;
+
             return result;
         }
 
@@ -85,12 +88,22 @@ namespace Mliybs.QQBot.Bots.WebSocket
             {
                 var result = await ReceiveAsync();
 
-                Console.WriteLine(result.Raw);
+                if (result.Opcode == Opcode.Dispatch)
+                {
+                    if (UtilHelpers.EventTypes.TryGetValue(result.Type, out var type))
+                    {
+                        messageReceived.OnNext((IMessageReceivedEvent)result.Data.Deserialize(type, UtilHelpers.Options)!);
+                        return;
+                    }
+                }
+
+                eventReceived.OnNext(result);
             }
         }
 
         private void SendHeartbeat(object? _)
         {
+            Console.WriteLine(currentSerialNumber.HasValue ? currentSerialNumber.Value : "null");
             _ = websocket.SendAsync(Encoding.UTF8.GetBytes($$"""
                 {
                   "op": 1,

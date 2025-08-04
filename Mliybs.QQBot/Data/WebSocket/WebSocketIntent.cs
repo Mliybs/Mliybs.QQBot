@@ -10,7 +10,8 @@ namespace Mliybs.QQBot.Data.WebSocket
     public enum WebSocketIntent
     {
         /// <summary>
-        /// 绑定所有事件（包括群与频道），如果有事件没有权限则会断开连接，谨慎使用
+        /// <para>绑定所有事件（包括群与频道），如果有事件没有权限则会断开连接，谨慎使用</para>
+        /// <para>不关心频道建议使用GroupAndC2cEvent</para>
         /// </summary>
         All = int.MaxValue,
 
@@ -22,6 +23,9 @@ namespace Mliybs.QQBot.Data.WebSocket
 
         GuildMessageReactions = 1 << 10,
 
+        /// <summary>
+        /// 频道私信
+        /// </summary>
         DirectMessage = 1 << 12,
 
         GroupAndC2cEvent = 1 << 25,
