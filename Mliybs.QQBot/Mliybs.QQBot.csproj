@@ -4,12 +4,28 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
+    <PackageId>Mliybs.QQBot</PackageId>
+    <Version>0.7.0</Version>
+    <Authors>Mliybs</Authors>
+    <Company>Mlinetles</Company>
+    <Description>QQBot的C#实现</Description>
+    <PackageIcon>icon.jpg</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <RepositoryUrl>https://github.com/Mliybs/Mliybs.QQBot</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.1" />
-    <PackageReference Include="System.IO.Pipelines" Version="9.0.7" />
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2" />
+    <PackageReference Include="System.IO.Pipelines" Version="9.0.8" />
     <PackageReference Include="System.Reactive" Version="6.0.1" />
   </ItemGroup>
+    
+    <ItemGroup>
+        <None Include="..\README.md" Pack="true" PackagePath="." />
+        <None Include="..\LICENSE" Pack="true" PackagePath="." />
+        <None Include="..\icon.jpg" Pack="true" PackagePath="." />
+    </ItemGroup>
 
 </Project>
