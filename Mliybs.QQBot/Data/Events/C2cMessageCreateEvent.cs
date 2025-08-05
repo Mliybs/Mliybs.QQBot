@@ -1,6 +1,9 @@
 ﻿using Mliybs.QQBot.Data.Attributes;
+using Mliybs.QQBot.Data.OpenApi;
+using Mliybs.QQBot.Utils;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Metadata;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
@@ -32,12 +35,28 @@ namespace Mliybs.QQBot.Data.Events
         [JsonPropertyName("attachments")]
         public Attachment[] Attachments { get; set; } = Array.Empty<Attachment>();
 
+        [JsonIgnore]
+        public QQBot Bot { get; internal set; }
+
+        [JsonIgnore]
+        QQBot IMessageReceivedEvent.Bot { get => Bot; set => Bot = value; }
+
         public record AuthorType : IMessageReceivedEvent.IAuthor
         {
             [JsonPropertyName("user_openid")]
-            public string UserOpenId { get; set; }
+            public UserOpenId UserOpenId { get; set; }
 
-            string IMessageReceivedEvent.IAuthor.OpenId => UserOpenId;
+            UserOpenId IMessageReceivedEvent.IAuthor.OpenId => UserOpenId;
+        }
+
+        public async Task<MessageSendResult> ReplyAsync(string message)
+        {
+            return await OpenApiHelpers.SendC2cMessage(Author.UserOpenId, Bot.AccessTokenManager.GetToken(), new
+            {
+                msg_type = 0,
+                content = message,
+                msg_id = Id
+            });
         }
     }
 }

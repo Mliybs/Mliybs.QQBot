@@ -22,7 +22,9 @@ namespace Mliybs.QQBot.Utils
             Converters =
             {
                 new JsonStringEnumConverter<EventType>(JsonNamingPolicy.SnakeCaseUpper),
-                new AttachmentConverter()
+                new AttachmentConverter(),
+                new UserOpenIdConverter(),
+                new GroupOpenIdConverter(),
             }
         };
 

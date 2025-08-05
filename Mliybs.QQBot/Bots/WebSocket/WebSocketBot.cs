@@ -69,11 +69,12 @@ namespace Mliybs.QQBot.Bots.WebSocket
 
             var raw = Encoding.UTF8.GetString(bytes);
 
-            var json = JsonDocument.Parse(bytes);
+            using var json = JsonDocument.Parse(bytes);
 
             var result = json.Deserialize<ReplyResult>(UtilHelpers.Options)!;
 
-            json.RootElement.TryGetProperty("d", out result.Data);
+            if (json.RootElement.TryGetProperty("d", out var data))
+                result.Data = data.Clone();
 
             result.Raw = raw;
 
@@ -92,8 +93,10 @@ namespace Mliybs.QQBot.Bots.WebSocket
                 {
                     if (UtilHelpers.EventTypes.TryGetValue(result.Type, out var type))
                     {
-                        messageReceived.OnNext((IMessageReceivedEvent)result.Data.Deserialize(type, UtilHelpers.Options)!);
-                        return;
+                        var @event = (IMessageReceivedEvent)result.Data.Deserialize(type, UtilHelpers.Options)!;
+                        @event.Bot = this;
+                        messageReceived.OnNext(@event);
+                        continue;
                     }
                 }
 
@@ -103,7 +106,6 @@ namespace Mliybs.QQBot.Bots.WebSocket
 
         private void SendHeartbeat(object? _)
         {
-            Console.WriteLine(currentSerialNumber.HasValue ? currentSerialNumber.Value : "null");
             _ = websocket.SendAsync(Encoding.UTF8.GetBytes($$"""
                 {
                   "op": 1,

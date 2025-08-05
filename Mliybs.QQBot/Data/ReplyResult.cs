@@ -9,8 +9,6 @@ namespace Mliybs.QQBot.Data
 #nullable disable
     public record ReplyResult
     {
-        private JsonElement data;
-
         [JsonPropertyName("id")]
         public string Id { get; set; }
 
@@ -24,7 +22,7 @@ namespace Mliybs.QQBot.Data
         public EventType Type { get; set; }
 
         [JsonPropertyName("d"), JsonIgnore]
-        public ref JsonElement Data => ref data;
+        public JsonElement Data { get; set; }
 
         [JsonIgnore]
         public string Raw {  get; set; }

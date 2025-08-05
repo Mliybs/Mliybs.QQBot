@@ -39,15 +39,18 @@ namespace Mliybs.QQBot.Bots.Http
 
         public async Task<ReplyResult> SendAsync(HttpContent content)
         {
-            var json = await JsonDocument.ParseAsync(await (await OpenApiHelpers.Client.SendAsync(new(HttpMethod.Post, OpenApiHelpers.ApiUrl)
+            using var req = new HttpRequestMessage(HttpMethod.Post, OpenApiHelpers.ApiUrl)
             {
                 Headers = { { "Authorization", "QQBot " + accessToken } },
                 Content = content
-            })).Content.ReadAsStreamAsync());
+            };
+
+            using var json = await JsonDocument.ParseAsync(await (await OpenApiHelpers.Client.SendAsync(req)).Content.ReadAsStreamAsync());
 
             var result = json.Deserialize<ReplyResult>(UtilHelpers.Options)!;
 
-            json.RootElement.TryGetProperty("d", out result.Data);
+            if (json.RootElement.TryGetProperty("d", out var data))
+                result.Data = data.Clone();
 
             return result;
         }
@@ -61,11 +64,12 @@ namespace Mliybs.QQBot.Bots.Http
 
             var raw = await reader.ReadToEndAsync();
 
-            var json = JsonDocument.Parse(raw);
+            using var json = JsonDocument.Parse(raw);
 
             var result = json.Deserialize<ReplyResult>(UtilHelpers.Options)!;
 
-            json.RootElement.TryGetProperty("d", out result.Data);
+            if (json.RootElement.TryGetProperty("d", out var data))
+                result.Data = data.Clone();
 
             result.Raw = raw;
 

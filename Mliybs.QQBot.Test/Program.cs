@@ -10,9 +10,9 @@ using var bot = new WebSocketBot(id, secret);
 
 await bot.ConnectAsync(WebSocketIntent.GroupAndC2cEvent);
 
-bot.MessageReceived.Subscribe(x =>
+bot.MessageReceived.Subscribe(async x =>
 {
-    Console.WriteLine(x.Content);
+    await x.ReplyAsync("纯贵物啊铁子");
 });
 
 bot.KeepRunning();

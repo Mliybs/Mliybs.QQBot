@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Mliybs.QQBot.Data.OpenApi;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,19 +9,23 @@ namespace Mliybs.QQBot.Data.Events
 {
     public interface IMessageReceivedEvent
     {
-        public string Id { get; }
+        string Id { get; }
 
-        public string Content { get; }
+        string Content { get; }
 
-        public IAuthor Author { get; }
+        IAuthor Author { get; }
 
-        public DateTime SendTime { get; }
+        DateTime SendTime { get; }
 
-        public Attachment[] Attachments { get; }
+        Attachment[] Attachments { get; }
+
+        QQBot Bot { get; internal set; }
+
+        Task<MessageSendResult> ReplyAsync(string message);
 
         public interface IAuthor
         {
-            public string OpenId { get; }
+            public UserOpenId OpenId { get; }
         }
     }
 }

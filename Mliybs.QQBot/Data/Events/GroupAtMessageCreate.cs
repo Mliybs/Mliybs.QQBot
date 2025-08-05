@@ -1,4 +1,6 @@
 ﻿using Mliybs.QQBot.Data.Attributes;
+using Mliybs.QQBot.Data.OpenApi;
+using Mliybs.QQBot.Utils;
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
@@ -25,7 +27,7 @@ namespace Mliybs.QQBot.Data.Events
         public DateTime SendTime => Timestamp;
 
         [JsonPropertyName("group_openid")]
-        public string GroupOpenId { get; set; }
+        public GroupOpenId GroupOpenId { get; set; }
 
         IMessageReceivedEvent.IAuthor IMessageReceivedEvent.Author => Author;
 
@@ -35,12 +37,28 @@ namespace Mliybs.QQBot.Data.Events
         [JsonPropertyName("attachments")]
         public Attachment[] Attachments { get; set; } = Array.Empty<Attachment>();
 
+        [JsonIgnore]
+        public QQBot Bot { get; internal set; }
+
+        [JsonIgnore]
+        QQBot IMessageReceivedEvent.Bot { get => Bot; set => Bot = value; }
+
         public record AuthorType : IMessageReceivedEvent.IAuthor
         {
             [JsonPropertyName("member_openid")]
-            public string MemberOpenId { get; set; }
+            public UserOpenId MemberOpenId { get; set; }
 
-            string IMessageReceivedEvent.IAuthor.OpenId => MemberOpenId;
+            UserOpenId IMessageReceivedEvent.IAuthor.OpenId => MemberOpenId;
+        }
+
+        public async Task<MessageSendResult> ReplyAsync(string message)
+        {
+            return await OpenApiHelpers.SendGroupMessage(GroupOpenId, Bot.AccessTokenManager.GetToken(), new
+            {
+                msg_type = 0,
+                content = message,
+                msg_id = Id
+            });
         }
     }
 }

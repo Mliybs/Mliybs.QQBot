@@ -1,4 +1,5 @@
-﻿using Mliybs.QQBot.Data.OpenApi;
+﻿using Mliybs.QQBot.Data;
+using Mliybs.QQBot.Data.OpenApi;
 using System;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -16,21 +17,49 @@ namespace Mliybs.QQBot.Utils
 
         public static async Task<AccessTokenInfo> GetAccessToken(string id, string secret)
         {
-            var result = await Client.PostAsJsonAsync(AccessTokenUrl, new { appId = id, clientSecret = secret }, UtilHelpers.Options);
+            using var result = await Client.PostAsJsonAsync(AccessTokenUrl, new { appId = id, clientSecret = secret }, UtilHelpers.Options);
             return (await result.EnsureSuccessStatusCode()
                 .Content.ReadFromJsonAsync<AccessTokenInfo>(UtilHelpers.Options))!;
         }
 
         public static async Task<string> GetWebSocketGateway(string accessToken)
         {
-            var response = await Client.SendAsync(new(HttpMethod.Get, ApiUrl + "/gateway")
+            using var req = new HttpRequestMessage(HttpMethod.Get, ApiUrl + "/gateway")
             {
                 Headers = { { "Authorization", "QQBot " + accessToken } },
-            });
+            };
 
-            var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            using var res = await Client.SendAsync(req);
+
+            using var json = JsonDocument.Parse(await res.Content.ReadAsStringAsync());
 
             return json.RootElement.GetProperty("url").GetString()!;
+        }
+
+        public static async Task<MessageSendResult> SendC2cMessage(UserOpenId openId, string accessToken, object message)
+        {
+            using var req = new HttpRequestMessage(HttpMethod.Post, ApiUrl + $"/v2/users/{openId.OpenId}/messages")
+            {
+                Headers = { { "Authorization", "QQBot " + accessToken } },
+                Content = JsonContent.Create(message, options: UtilHelpers.Options)
+            };
+
+            using var result = await Client.SendAsync(req);
+
+            return (await result.Content.ReadFromJsonAsync<MessageSendResult>(UtilHelpers.Options))!;
+        }
+
+        public static async Task<MessageSendResult> SendGroupMessage(GroupOpenId openId, string accessToken, object message)
+        {
+            using var req = new HttpRequestMessage(HttpMethod.Post, ApiUrl + $"/v2/groups/{openId.OpenId}/messages")
+            {
+                Headers = { { "Authorization", "QQBot " + accessToken } },
+                Content = JsonContent.Create(message, options: UtilHelpers.Options)
+            };
+
+            using var result = await Client.SendAsync(req);
+
+            return (await result.Content.ReadFromJsonAsync<MessageSendResult>(UtilHelpers.Options))!;
         }
     }
 }
