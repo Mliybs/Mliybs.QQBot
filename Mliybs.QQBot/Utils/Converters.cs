@@ -1,5 +1,6 @@
 ﻿using Mliybs.QQBot.Data;
 using Mliybs.QQBot.Data.Events;
+using Mliybs.QQBot.Data.OpenApi;
 using System;
 using System.Collections.Generic;
 using System.Text.Json;

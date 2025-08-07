@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <PackageId>Mliybs.QQBot</PackageId>
-    <Version>0.7.0</Version>
+    <Version>0.7.1</Version>
     <Authors>Mliybs</Authors>
     <Company>Mlinetles</Company>
     <Description>QQBot的C#实现</Description>

@@ -49,14 +49,29 @@ namespace Mliybs.QQBot.Data.Events
             UserOpenId IMessageReceivedEvent.IAuthor.OpenId => UserOpenId;
         }
 
-        public async Task<MessageSendResult> ReplyAsync(string message)
+        private int currentSerialNumber = 1;
+
+#nullable enable
+        public async Task<MessageSendResult> ReplyAsync(string message, FileInfoResult? file = null)
         {
             return await OpenApiHelpers.SendC2cMessage(Author.UserOpenId, Bot.AccessTokenManager.GetToken(), new
             {
-                msg_type = 0,
+                msg_type = (int)(file is null ? MessageType.Text : MessageType.Media),
                 content = message,
-                msg_id = Id
+                msg_id = Id,
+                media = file,
+                msg_seq = currentSerialNumber++
             });
+        }
+#nullable disable
+        public async Task<FileInfoResult> RequestFileInfo(FileType type, string urlOrBase64, bool isBase64)
+        {
+            return await OpenApiHelpers.RequestFileInfo(Author.UserOpenId, Bot.AccessTokenManager.GetToken(), type, urlOrBase64, isBase64);
+        }
+
+        public async Task<FileInfoResult> RequestFileInfo(FileType type, ReadOnlyMemory<byte> data)
+        {
+            return await OpenApiHelpers.RequestFileInfo(Author.UserOpenId, Bot.AccessTokenManager.GetToken(), type, data);
         }
     }
 }

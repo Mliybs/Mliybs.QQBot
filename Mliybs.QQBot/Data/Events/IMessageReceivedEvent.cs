@@ -21,7 +21,11 @@ namespace Mliybs.QQBot.Data.Events
 
         QQBot Bot { get; internal set; }
 
-        Task<MessageSendResult> ReplyAsync(string message);
+        Task<MessageSendResult> ReplyAsync(string message, FileInfoResult? file = null);
+
+        Task<FileInfoResult> RequestFileInfo(FileType type, string urlOrBase64, bool isBase64);
+
+        Task<FileInfoResult> RequestFileInfo(FileType type, ReadOnlyMemory<byte> data);
 
         public interface IAuthor
         {
