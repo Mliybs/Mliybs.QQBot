@@ -1,14 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.Text;
-using System.Reflection;
-using System.Linq;
-using System.Text.Json;
-using System.Threading.Tasks;
-using System.Text.Json.Serialization;
 using Mliybs.QQBot.Data;
 using Mliybs.QQBot.Data.Attributes;
+using Org.BouncyCastle.Utilities;
+using System;
+using System.Buffers;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Mliybs.QQBot.Utils
 {
@@ -37,5 +38,33 @@ namespace Mliybs.QQBot.Utils
                 .Where(x => x.Attribute != null)
                 .Select(x => new KeyValuePair<EventType, Type>(x.Attribute!.Type, x.Event)));
         }
+
+        /// <summary>
+        /// 返回小写十六进制字符串
+        /// </summary>
+        /// <param name="bytes"></param>
+        /// <returns></returns>
+        public static string ToHexString(byte[] bytes)
+#if NETSTANDARD2_1
+        {
+            var builder = new StringBuilder(bytes.Length * 2);
+            foreach (var b in bytes)
+            {
+                builder.Append(b.ToString("x2"));
+            }
+            return builder.ToString();
+        }
+#else
+        {
+            return Convert.ToHexString(bytes).ToLower();
+        }
+#endif
+
+#if NETSTANDARD2_1
+        public static string GetString(this Encoding encoding, ReadOnlySequence<byte> bytes)
+        {
+            return encoding.GetString(bytes.ToArray());
+        }
+#endif
     }
 }

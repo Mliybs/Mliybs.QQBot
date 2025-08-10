@@ -3,7 +3,6 @@ using Mliybs.QQBot.Data.OpenApi;
 using Mliybs.QQBot.Utils;
 using System;
 using System.Collections.Generic;
-using System.Reflection.Metadata;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
@@ -64,9 +63,28 @@ namespace Mliybs.QQBot.Data.Events
             });
         }
 #nullable disable
+        public async Task<MessageSendResult> ReplyMarkdownAsync(string markdown)
+        {
+            return await OpenApiHelpers.SendC2cMessage(Author.UserOpenId, Bot.AccessTokenManager.GetToken(), new
+            {
+                msg_type = (int)MessageType.Markdown,
+                msg_id = Id,
+                markdown = new
+                {
+                    content = markdown
+                },
+                msg_seq = currentSerialNumber++
+            });
+        }
+
         public async Task<FileInfoResult> RequestFileInfo(FileType type, string urlOrBase64, bool isBase64)
         {
             return await OpenApiHelpers.RequestFileInfo(Author.UserOpenId, Bot.AccessTokenManager.GetToken(), type, urlOrBase64, isBase64);
+        }
+
+        public async Task<FileInfoResult> RequestFileInfo(FileType type, byte[] data)
+        {
+            return await OpenApiHelpers.RequestFileInfo(Author.UserOpenId, Bot.AccessTokenManager.GetToken(), type, data);
         }
 
         public async Task<FileInfoResult> RequestFileInfo(FileType type, ReadOnlyMemory<byte> data)

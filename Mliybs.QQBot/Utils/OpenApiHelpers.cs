@@ -1,5 +1,5 @@
-﻿using Microsoft.VisualBasic.FileIO;
-using Mliybs.QQBot.Data;
+﻿using Mliybs.QQBot.Data;
+using Mliybs.QQBot.Data.Exceptions;
 using Mliybs.QQBot.Data.OpenApi;
 using System;
 using System.Net.Http;
@@ -18,9 +18,16 @@ namespace Mliybs.QQBot.Utils
 
         public static async Task<AccessTokenInfo> GetAccessToken(string id, string secret)
         {
-            using var result = await Client.PostAsJsonAsync(AccessTokenUrl, new { appId = id, clientSecret = secret }, UtilHelpers.Options);
-            return (await result.EnsureSuccessStatusCode()
-                .Content.ReadFromJsonAsync<AccessTokenInfo>(UtilHelpers.Options))!;
+            using var content = JsonContent.Create(new { appId = id, clientSecret = secret }, options: UtilHelpers.Options);
+
+            using var result = await Client.PostAsync(AccessTokenUrl, content);
+
+            using var json = JsonDocument.Parse(await result.EnsureSuccessStatusCode()
+                .Content.ReadAsStringAsync());
+
+            return result.IsSuccessStatusCode
+                ? json.Deserialize<AccessTokenInfo>(UtilHelpers.Options)!
+                : throw new OpenApiException(json.Deserialize<OpenApiExceptionContext>(UtilHelpers.Options)!);
         }
 
         public static async Task<string> GetWebSocketGateway(string accessToken)
@@ -34,7 +41,9 @@ namespace Mliybs.QQBot.Utils
 
             using var json = JsonDocument.Parse(await res.Content.ReadAsStringAsync());
 
-            return json.RootElement.GetProperty("url").GetString()!;
+            return res.IsSuccessStatusCode
+                ? json.RootElement.GetProperty("url").GetString()!
+                : throw new OpenApiException(json.Deserialize<OpenApiExceptionContext>(UtilHelpers.Options)!);
         }
 
         public static async Task<MessageSendResult> SendC2cMessage(UserOpenId openId, string accessToken, object message)
@@ -48,7 +57,11 @@ namespace Mliybs.QQBot.Utils
 
             using var result = await Client.SendAsync(req);
 
-            return (await result.Content.ReadFromJsonAsync<MessageSendResult>(UtilHelpers.Options))!;
+            using var json = JsonDocument.Parse(await result.Content.ReadAsStringAsync());
+
+            return result.IsSuccessStatusCode
+                ? json.Deserialize<MessageSendResult>(UtilHelpers.Options)!
+                : throw new OpenApiException(json.Deserialize<OpenApiExceptionContext>(UtilHelpers.Options)!);
         }
 
         public static async Task<MessageSendResult> SendGroupMessage(GroupOpenId openId, string accessToken, object message)
@@ -62,7 +75,11 @@ namespace Mliybs.QQBot.Utils
 
             using var result = await Client.SendAsync(req);
 
-            return (await result.Content.ReadFromJsonAsync<MessageSendResult>(UtilHelpers.Options))!;
+            using var json = JsonDocument.Parse(await result.Content.ReadAsStringAsync());
+
+            return result.IsSuccessStatusCode
+                ? json.Deserialize<MessageSendResult>(UtilHelpers.Options)!
+                : throw new OpenApiException(json.Deserialize<OpenApiExceptionContext>(UtilHelpers.Options)!);
         }
 
         public static async Task<FileInfoResult> RequestFileInfo(UserOpenId userOpenId, string accessToken, FileType type, string urlOrBase64, bool isBase64)
@@ -87,7 +104,11 @@ namespace Mliybs.QQBot.Utils
 
             using var result = await Client.SendAsync(req);
 
-            return (await result.Content.ReadFromJsonAsync<FileInfoResult>(UtilHelpers.Options))!;
+            using var json = JsonDocument.Parse(await result.Content.ReadAsStringAsync());
+
+            return result.IsSuccessStatusCode
+                ? json.Deserialize<FileInfoResult>(UtilHelpers.Options)!
+                : throw new OpenApiException(json.Deserialize<OpenApiExceptionContext>(UtilHelpers.Options)!);
         }
 
         public static async Task<FileInfoResult> RequestFileInfo(UserOpenId userOpenId, string accessToken, FileType type, ReadOnlyMemory<byte> data)
@@ -107,7 +128,11 @@ namespace Mliybs.QQBot.Utils
 
             using var result = await Client.SendAsync(req);
 
-            return (await result.Content.ReadFromJsonAsync<FileInfoResult>(UtilHelpers.Options))!;
+            using var json = JsonDocument.Parse(await result.Content.ReadAsStringAsync());
+
+            return result.IsSuccessStatusCode
+                ? json.Deserialize<FileInfoResult>(UtilHelpers.Options)!
+                : throw new OpenApiException(json.Deserialize<OpenApiExceptionContext>(UtilHelpers.Options)!);
         }
 
         public static async Task<FileInfoResult> RequestFileInfo(GroupOpenId groupOpenId, string accessToken, FileType type, string urlOrBase64, bool isBase64)
@@ -132,7 +157,11 @@ namespace Mliybs.QQBot.Utils
 
             using var result = await Client.SendAsync(req);
 
-            return (await result.Content.ReadFromJsonAsync<FileInfoResult>(UtilHelpers.Options))!;
+            using var json = JsonDocument.Parse(await result.Content.ReadAsStringAsync());
+
+            return result.IsSuccessStatusCode
+                ? json.Deserialize<FileInfoResult>(UtilHelpers.Options)!
+                : throw new OpenApiException(json.Deserialize<OpenApiExceptionContext>(UtilHelpers.Options)!);
         }
 
         public static async Task<FileInfoResult> RequestFileInfo(GroupOpenId groupOpenId, string accessToken, FileType type, ReadOnlyMemory<byte> data)
@@ -152,7 +181,11 @@ namespace Mliybs.QQBot.Utils
 
             using var result = await Client.SendAsync(req);
 
-            return (await result.Content.ReadFromJsonAsync<FileInfoResult>(UtilHelpers.Options))!;
+            using var json = JsonDocument.Parse(await result.Content.ReadAsStringAsync())!;
+
+            return result.IsSuccessStatusCode
+                ? json.Deserialize<FileInfoResult>(UtilHelpers.Options)!
+                : throw new OpenApiException(json.Deserialize<OpenApiExceptionContext>(UtilHelpers.Options)!);
         }
     }
 }

@@ -23,7 +23,11 @@ namespace Mliybs.QQBot.Data.Events
 
         Task<MessageSendResult> ReplyAsync(string message, FileInfoResult? file = null);
 
+        Task<MessageSendResult> ReplyMarkdownAsync(string markdown);
+
         Task<FileInfoResult> RequestFileInfo(FileType type, string urlOrBase64, bool isBase64);
+
+        Task<FileInfoResult> RequestFileInfo(FileType type, byte[] data);
 
         Task<FileInfoResult> RequestFileInfo(FileType type, ReadOnlyMemory<byte> data);
 

@@ -81,12 +81,19 @@ namespace Mliybs.QQBot.Bots.Http
                     var payload = result.Data.Deserialize<CallbackValidateInfo>(UtilHelpers.Options)!;
 
                     var signer = SignHelpers.NewSigner(privateKey, Encoding.UTF8.GetBytes(payload.EventTimestamp));
-                    signer.BlockUpdate(Encoding.UTF8.GetBytes(payload.PlainToken));
-                    var sig = Convert.ToHexString(signer.GenerateSignature()).ToLower();
+
+                    var token = Encoding.UTF8.GetBytes(payload.PlainToken);
+
+                    signer.BlockUpdate(token, 0, token.Length);
+
+                    var sig = UtilHelpers.ToHexString(signer.GenerateSignature());
 
                     using var stream = context.Response.OutputStream;
-                    await stream.WriteAsync(Encoding.UTF8.GetBytes(
-                        JsonSerializer.Serialize(new { plain_token = payload.PlainToken, signature = sig }, UtilHelpers.Options)));
+
+                    var res = Encoding.UTF8.GetBytes(
+                        JsonSerializer.Serialize(new { plain_token = payload.PlainToken, signature = sig }, UtilHelpers.Options));
+
+                    await stream.WriteAsync(res, 0, res.Length);
                 }
 
                 context.Response.Close();

@@ -66,9 +66,28 @@ namespace Mliybs.QQBot.Data.Events
             });
         }
 #nullable disable
+        public async Task<MessageSendResult> ReplyMarkdownAsync(string markdown)
+        {
+            return await OpenApiHelpers.SendGroupMessage(GroupOpenId, Bot.AccessTokenManager.GetToken(), new
+            {
+                msg_type = (int)MessageType.Markdown,
+                msg_id = Id,
+                markdown = new
+                {
+                    content = markdown
+                },
+                msg_seq = currentSerialNumber++
+            });
+        }
+
         public async Task<FileInfoResult> RequestFileInfo(FileType type, string urlOrBase64, bool isBase64)
         {
             return await OpenApiHelpers.RequestFileInfo(GroupOpenId, Bot.AccessTokenManager.GetToken(), type, urlOrBase64, isBase64);
+        }
+
+        public async Task<FileInfoResult> RequestFileInfo(FileType type, byte[] data)
+        {
+            return await OpenApiHelpers.RequestFileInfo(GroupOpenId, Bot.AccessTokenManager.GetToken(), type, data);
         }
 
         public async Task<FileInfoResult> RequestFileInfo(FileType type, ReadOnlyMemory<byte> data)

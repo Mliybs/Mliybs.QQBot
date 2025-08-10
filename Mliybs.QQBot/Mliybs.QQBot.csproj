@@ -1,22 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net8.0;netstandard2.1</TargetFrameworks>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <PackageId>Mliybs.QQBot</PackageId>
-    <Version>0.7.1</Version>
+    <Version>0.7.2</Version>
     <Authors>Mliybs</Authors>
     <Company>Mlinetles</Company>
     <Description>QQBot的C#实现</Description>
     <PackageIcon>icon.jpg</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <RepositoryUrl>https://github.com/Mliybs/Mliybs.QQBot</RepositoryUrl>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="$(TargetFramework) == 'net8.0'">
     <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2" />
     <PackageReference Include="System.IO.Pipelines" Version="9.0.8" />
     <PackageReference Include="System.Reactive" Version="6.0.1" />
@@ -24,8 +24,15 @@
     
     <ItemGroup>
         <None Include="..\README.md" Pack="true" PackagePath="." />
-        <None Include="..\LICENSE" Pack="true" PackagePath="." />
         <None Include="..\icon.jpg" Pack="true" PackagePath="." />
+    </ItemGroup>
+    
+    <ItemGroup Condition="$(TargetFramework) == 'netstandard2.1'">
+      <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2" />
+      <PackageReference Include="System.IO.Pipelines" Version="9.0.8" />
+      <PackageReference Include="System.Net.Http.Json" Version="9.0.8" />
+      <PackageReference Include="System.Reactive" Version="6.0.1" />
+      <PackageReference Include="System.Text.Json" Version="9.0.8" />
     </ItemGroup>
 
 </Project>

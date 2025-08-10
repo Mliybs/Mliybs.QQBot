@@ -14,7 +14,7 @@ public class WebSocketPipeReader : IDisposable
 
     public async Task<ReadOnlySequence<byte>> ReadToEndAsync(ClientWebSocket webSocket)
     {
-        ArgumentNullException.ThrowIfNull(webSocket);
+        if (webSocket == null) throw new ArgumentNullException(nameof(webSocket));
 
         // 启动写入任务
         var writing = FillPipeAsync(webSocket, pipe.Writer);

@@ -12,7 +12,7 @@ public class StreamPipeReader : IDisposable
 
     public async Task<ReadOnlySequence<byte>> ReadToEndAsync(Stream stream, OnRead? onRead = null)
     {
-        ArgumentNullException.ThrowIfNull(stream);
+        if (stream == null ) throw new ArgumentNullException(nameof(stream));
 
         // 启动写入任务
         var writing = FillPipeAsync(stream, pipe.Writer, onRead);
