@@ -20,7 +20,7 @@ namespace Mliybs.QQBot.Data.WebSocket
         public UserInfo User { get; set; }
 
         [JsonPropertyName("shard")]
-        public int[] Shard { get; set; }
+        public int[] Shard { get; set; } = Array.Empty<int>();
 
 
         public record UserInfo
